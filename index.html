@@ -18,7 +18,7 @@
 		}
 		.classes{
 			border: 1px solid;
-			height: 335px;
+			height: 635px;
 			overflow-y: auto;
 		}
 		.pdn{
@@ -44,7 +44,7 @@
 			overflow-y: auto;
 		}
 		.entdiv{
-						
+
 		}
 		.ctrtext{
 			padding: 0px 70px;
@@ -57,7 +57,8 @@
 		}
 		#editor {
 		    width: 100%;
-		    height: 200px;
+		    height: 500px;
+		    white-space: pre-wrap;
 		    padding: 10px;
 		    background-color: #444;
 		    color: white;
@@ -93,56 +94,56 @@
 
 	    @-webkit-keyframes colorchange {
 	      0% {
-	        
+
 	        color: blue;
 	      }
-	      
+
 	      10% {
-	        
+
 	        color: red;
 	      }
-	      
+
 	      20% {
-	        
+
 	        color: #1abc9c;
 	      }
-	      
+
 	      30% {
-	        
+
 	        color: #d35400;
 	      }
-	      
+
 	      40% {
-	        
+
 	        color: blue;
 	      }
-	      
+
 	      50% {
-	        
+
 	        color: #34495e;
 	      }
-	      
+
 	      60% {
-	        
+
 	        color: blue;
 	      }
-	      
+
 	      70% {
-	        
+
 	        color: #2980b9;
 	      }
 	      80% {
-	     
+
 	        color: darkred;
 	      }
-	      
+
 	      90% {
-	     
+
 	        color: #2980b9;
 	      }
-	      
+
 	      100% {
-	        
+
 	        color: pink;
 	      }
 	    }
@@ -163,14 +164,15 @@
 		<div class="row">
 			<div class="col-8">
 				<div class="row content">
-					<div class="col-3" style="padding: 0px;"><h4>Content</h4></div>
+
+					<div class="col-3" style="padding: 0px;"><h4>Content</h4> pages: <span id="page-number"></span>/<span id="total-pages"></span></div>
 					<div class="col-6 note"> <span>Please save it, Once pasted or typed</span> </div>
 					<div class="col-3">
 						<button type="button" class="btn btn-primary btn-sm pull-right" id="save">Save</button>
 						<button type="button" class="btn btn-primary btn-sm pull-right" id="edit">Edit</button>
 					</div>
-					
-					
+
+
 					<div id="editor" contenteditable="true" onpaste="myFunction()"></div>
 				</div>
 				<div class="row entity">
@@ -213,7 +215,7 @@
 						<button type="button" id="next" class="btn btn-secondary">Next Content</button>
 						<button type="button" id="complete" class="btn btn-secondary">Complete</button>
 					</div>
-					
+
 				</div>
 			</div>
 		</div>

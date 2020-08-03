@@ -33,7 +33,7 @@ function getCorrectedText(){
 }
 function getFilename(myFile){
 	if(myFile.files.length > 0){
-		var file = myFile.files[0];  
+		var file = myFile.files[0];
 	   	var filename = file.name;
 	   	$(".custom-file-label").text(filename);
 	   	l(filename);
@@ -99,7 +99,7 @@ $(document).ready(function(){
 	//                 l('success');
 	//     			l(text_file_all_text);
 	//     			$('#editor').text(text_file_all_text[page_num]);
-	//     			setTimeout(function(){ 
+	//     			setTimeout(function(){
 	//     				$("#gsc-i-id1.gsc-input").val(text_file_all_text[page_num]);
 	//     				$(".gsc-search-button").click();
 	//     			}, 500);
@@ -128,8 +128,11 @@ $("#edit").click(function(){
 	$("#edit").hide();
 	$("#save").show();
 });
+var ind = 0;
 $("#addclass").click(function(){
-	classname = $('input').val();
+	stored =['Payee', 'Transferee', 'Original-Payment', 'Transfer-Payment', 'Issuer', 'Birthday', 'Age', 'Annuity Cost', 'Annuity Start'];
+	classname = stored[ind]|| $('input').val();
+	ind++
 	if(class_names.indexOf(classname) != -1){
 		alert("Class names is already saved");
 		$('input').val("");
@@ -143,7 +146,7 @@ $("input").keypress(function(e){
 	var key = e.which;
 	if(key == 13){
 		$("#addclass").click();
-		return false;  
+		return false;
 	}
 });
 $( ".classes" ).on("click",".class",function(){
@@ -209,7 +212,7 @@ $( "#entity" ).on("dblclick",".entityval",function(){
 	if(del_idx != -1){
 		entities.splice(del_idx,1);
 	}
-	l(en_del_idx,en_len_cnt,delete_text,color_txt,tag_string); 
+	l(en_del_idx,en_len_cnt,delete_text,color_txt,tag_string);
 	$(this).remove();
 });
 
@@ -232,6 +235,7 @@ $("#next").click(function(){
 	page_num++;
 	entities = [];
 	full_text = "";
+	$('#page-number').text(page_num);
 	$("#editor").text("");
 	$("#editor").attr('contenteditable',true);
 	$("#save").show();
@@ -241,6 +245,7 @@ $("#next").click(function(){
 		$('#editor').text(text_file_all_text[page_num]);
 		$("#gsc-i-id1.gsc-input").val(text_file_all_text[page_num]);
 		$(".gsc-search-button").click();
+		$('#save').click()
 	}
 });
 $("#complete").click(function(){
@@ -271,7 +276,7 @@ $("#complete").click(function(){
 	else{
 		alert('Your browser does not support the HTML5 Blob.');
 	}
-	
+
 });
 $( ".classes" ).on("click",".delete_btn",function(){
 	if(confirm("Are you sure want to delete entity name?")){
@@ -288,13 +293,81 @@ $("#upload").click(function(){
 	if(input.files.length > 0){
 		var textFile = input.files[0];
 		var reader = new FileReader();
+		function processData(csv) {
+        var allTextLines = csv.split(/\r\n|\n/);
+        var lines = [];
+        for (var i=0; i<allTextLines.length; i++) {
+            var data = allTextLines[i].split(';');
+                var tarr = [];
+                for (var j=0; j<data.length; j++) {
+                    tarr.push(data[j]);
+                }
+                lines.push(tarr);
+        }
+        return lines
+    }
+
+		function CSVToArray (CSV_string, delimiter) {
+		   delimiter = (delimiter || ","); // user-supplied delimeter or default comma
+
+		   var pattern = new RegExp( // regular expression to parse the CSV values.
+		     ( // Delimiters:
+		       "(\\" + delimiter + "|\\r?\\n|\\r|^)" +
+		       // Quoted fields.
+		       "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
+		       // Standard fields.
+		       "([^\"\\" + delimiter + "\\r\\n]*))"
+		     ), "gi"
+		   );
+
+		   var rows = [[]];  // array to hold our data. First row is column headers.
+		   // array to hold our individual pattern matching groups:
+		   var matches = false; // false if we don't find any matches
+		   // Loop until we no longer find a regular expression match
+		   while (matches = pattern.exec( CSV_string )) {
+		       var matched_delimiter = matches[1]; // Get the matched delimiter
+		       // Check if the delimiter has a length (and is not the start of string)
+		       // and if it matches field delimiter. If not, it is a row delimiter.
+		       if (matched_delimiter.length && matched_delimiter !== delimiter) {
+		         // Since this is a new row of data, add an empty row to the array.
+		         rows.push( [] );
+		       }
+		       var matched_value;
+		       // Once we have eliminated the delimiter, check to see
+		       // what kind of value was captured (quoted or unquoted):
+		       if (matches[2]) { // found quoted value. unescape any double quotes.
+		        matched_value = matches[2].replace(
+		          new RegExp( "\"\"", "g" ), "\""
+		        );
+		       } else { // found a non-quoted value
+		         matched_value = matches[3];
+		       }
+		       // Now that we have our value string, let's add
+		       // it to the data array.
+		       rows[rows.length - 1].push(matched_value);
+		   }
+		   return rows; // Return the parsed data Array
+		}
+
 		reader.onload = function(e) {
+			console.log(reader.result)
 		   // The file's text will be printed here
-		    text_file_all_text = e.target.result.split('\n');
-		    $('#editor').text(text_file_all_text[page_num]);
-	    	$("#gsc-i-id1.gsc-input").val(text_file_all_text[page_num]);
+				let data = CSVToArray(e.target.result);
+		    // text_file_all_text = e.target.result.split('\n').filter(function(str){
+		    // 	return str.length;
+		    // });
+		    new_text_file = [];
+		    for(var i = 1; i < data.length; i++){
+		    	// new_text_file.push(data.slice(i, i+12).join('\n').replace(/\r?\n|\r/g, ' '));
+		    	new_text_file.push(data[i][0]);
+		    }
+		    text_file_all_text = new_text_file
+		    $('#editor').text(new_text_file[page_num]);
+	    	$("#gsc-i-id1.gsc-input").val(new_text_file[page_num]);
 	    	$(".gsc-search-button").click();
+	    	$('#total-pages').text(text_file_all_text.length);
+	    	$('#page-number').text(1);
 		};
-		reader.readAsText(textFile);
+		reader.readAsBinaryString(textFile);
 	}
 });
