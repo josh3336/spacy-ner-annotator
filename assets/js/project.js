@@ -4,8 +4,10 @@ var text_file_all_text = [];
 var page_num = 0;
 var selected_text = "";
 var training_datas = [];
+var training_datas_old = [];
 var training_data = {};
 var entities = [];
+let isJSON = false;
 var entities_values = [];
 var class_names = []
 function l(message){
@@ -130,7 +132,7 @@ $("#edit").click(function(){
 });
 var ind = 0;
 $("#addclass").click(function(){
-	stored =['Payee', 'Transferee', 'Original-Payment', 'Transfer-Payment', 'Issuer', 'Birthday', 'Age', 'Annuity Cost', 'Annuity Start'];
+	stored =['Payee', 'Transferor', 'OriginalPayment', 'TransferPayment', 'Issuer', 'Transfer Company', 'TransferorPayee Address', 'Birthday', 'Age', 'Annuity Cost', 'Annuity Start'];
 	classname = stored[ind]|| $('input').val();
 	ind++
 	if(class_names.indexOf(classname) != -1){
@@ -151,6 +153,17 @@ $("input").keypress(function(e){
 });
 $( ".classes" ).on("click",".class",function(){
 	entity = [];
+
+
+	selection       = window.getSelection();
+	var selectionText   = selection.toString();
+	var surroundingText = selection.anchorNode.data;
+	var index           = selection.anchorOffset;
+
+	if(index - 25 > 0){
+		textToFind  = surroundingText.slice(index - 25, selectionText.length + index);
+	}
+
 	if($("#editor").attr('contenteditable') == 'true'){
 		alert("Please save the content");
 		return;
@@ -161,7 +174,12 @@ $( ".classes" ).on("click",".class",function(){
 		alert("Please select atleast one entity");
 		return;
 	}
-	iniidx = full_text.indexOf(selected_text);
+	if(textToFind && full_text.indexOf(textToFind)  && full_text.indexOf(textToFind) + 25){
+		iniidx = full_text.indexOf(textToFind) +25
+	} else {
+		iniidx = full_text.indexOf(selected_text);
+	}
+
 	lgth = selected_text.length;
 	if(iniidx == -1){
 		alert("Please select entity inside the content");
@@ -171,7 +189,6 @@ $( ".classes" ).on("click",".class",function(){
 	// alert(window.getSelection().toString());
 	l(selected_text)
 	l($(this).text());
-	color_rgb = $(this).css('background-color');
 	$("#editor").attr('contenteditable',true);
 	if (selection.rangeCount && selection.getRangeAt) {
 	    range = selection.getRangeAt(0);
@@ -182,6 +199,8 @@ $( ".classes" ).on("click",".class",function(){
 	  selection.removeAllRanges();
 	  selection.addRange(range);
 	}
+
+	color_rgb = $(this).css('background-color');
 	// Colorize text
 	document.execCommand("BackColor", false, color_rgb);
 	// Set design mode to off
@@ -218,9 +237,10 @@ $( "#entity" ).on("dblclick",".entityval",function(){
 
 $("#skip").click(function(){
 	page_num++;
-	$('#editor').text(text_file_all_text[page_num]);
-	$("#gsc-i-id1.gsc-input").val(text_file_all_text[page_num]);
-	$(".gsc-search-button").click();
+	setContent(page_num)
+	// $('#editor').text(text_file_all_text[page_num]);
+	// $("#gsc-i-id1.gsc-input").val(text_file_all_text[page_num]);
+	// $(".gsc-search-button").click();
 });
 
 $("#next").click(function(){
@@ -241,12 +261,11 @@ $("#next").click(function(){
 	$("#save").show();
 	$("#edit").hide();
 	$("#entity").empty();
-	if(page_num < text_file_all_text.length){
-		$('#editor').text(text_file_all_text[page_num]);
-		$("#gsc-i-id1.gsc-input").val(text_file_all_text[page_num]);
-		$(".gsc-search-button").click();
-		$('#save').click()
-	}
+	setContent(page_num);
+		//$('#editor').text(text_file_all_text[page_num]);
+		// $("#gsc-i-id1.gsc-input").val(text_file_all_text[page_num]);
+		// $(".gsc-search-button").click();
+		// $('#save').click();
 });
 $("#complete").click(function(){
 	training_data = {};
@@ -286,6 +305,56 @@ $( ".classes" ).on("click",".delete_btn",function(){
 		$(this).parent().parent().remove();
 	}
 });
+
+function addEntitiesFromFile(m_entities, text){
+	m_entities.forEach(function(entity){
+		entity_name = entity[2];
+		color_rgb = $('button:contains("' + entity_name + '")').css('background-color');
+		// Colorize text
+		document.execCommand("BackColor", false, color_rgb);
+		// Set design mode to off
+		document.designMode = "off";
+		entities.push(entity);
+		selected_text = text.slice(entity[0], entity[1]);
+		entities_values.push(selected_text);
+		entities_values.push(color_rgb);
+		setEntityOutput(selected_text,color_rgb);
+		selected_text = "";
+	});
+}
+
+function setContent(num){
+	if (isJSON){
+		if(!training_datas_old[num]){
+			return;
+		}
+	} else {
+		if (!text_file_all_text[num]){
+			return;
+		}
+	}
+
+	text = isJSON ? training_datas_old[num].content : text_file_all_text[num];
+	$('#editor').text(text);
+	$("#gsc-i-id1.gsc-input").val(text);
+	$(".gsc-search-button").click();
+	$('#save').click();
+	if(isJSON){
+		addEntitiesFromFile(training_datas_old[num].entities, training_datas_old[num].content);
+	}
+}
+
+$("#addclass").click();
+$("#addclass").click();
+$("#addclass").click();
+$("#addclass").click();
+$("#addclass").click();
+$("#addclass").click();
+$("#addclass").click();
+$("#addclass").click();
+$("#addclass").click();
+$("#addclass").click();
+$("#addclass").click();
 $("#upload").click(function(){
 	l('upload clicked');
 	var fileInput = $('#validatedCustomFile');
@@ -293,6 +362,8 @@ $("#upload").click(function(){
 	if(input.files.length > 0){
 		var textFile = input.files[0];
 		var reader = new FileReader();
+		let extension = input.files[0].type;
+		isJSON = extension === 'application/json';
 		function processData(csv) {
         var allTextLines = csv.split(/\r\n|\n/);
         var lines = [];
@@ -353,21 +424,26 @@ $("#upload").click(function(){
 			console.log(reader.result)
 		   // The file's text will be printed here
 				let data = CSVToArray(e.target.result);
+				let jsonData
+				if(isJSON){
+					jsonData = 	JSON.parse(e.target.result);
+					training_datas_old = jsonData;
+					$('#total-pages').text(training_datas_old.length);
+				} else {
+					new_text_file = [];
+		    	for(var i = 1; i < data.length; i++){
+		    		// new_text_file.push(data.slice(i, i+12).join('\n').replace(/\r?\n|\r/g, ' '));
+		    		new_text_file.push(data[i][0]);
+		    		text_file_all_text = new_text_file;
+		    	}
+		    	$('#total-pages').text(text_file_all_text.length);
+				}
 		    // text_file_all_text = e.target.result.split('\n').filter(function(str){
 		    // 	return str.length;
 		    // });
-		    new_text_file = [];
-		    for(var i = 1; i < data.length; i++){
-		    	// new_text_file.push(data.slice(i, i+12).join('\n').replace(/\r?\n|\r/g, ' '));
-		    	new_text_file.push(data[i][0]);
-		    }
-		    text_file_all_text = new_text_file
-		    $('#editor').text(new_text_file[page_num]);
-	    	$("#gsc-i-id1.gsc-input").val(new_text_file[page_num]);
-	    	$(".gsc-search-button").click();
-	    	$('#total-pages').text(text_file_all_text.length);
 	    	$('#page-number').text(1);
+	    	setContent(0);
 		};
-		reader.readAsBinaryString(textFile);
+		reader.readAsText(textFile);
 	}
 });
